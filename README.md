@@ -198,9 +198,36 @@ the password is `space`
 
 4.Send the password as parameter to get the flag: https://talent.voorivex.academy/dUwsDlDr/?password=space
 you wil get : "/rqp2yOxi"
+
 5.Go to : https://talent.voorivex.academy/rqp2yOxi/
 ```
 
+- ### Level 10
+
+```text
+1.Send this request : https://talent.voorivex.academy/rqp2yOxi/?pass[]
+
+2.You will get the flag in error page : /udsWoshd
+
+3.Go to : https://talent.voorivex.academy/udsWoshd
+```
+
+
+- ### Level 11
+
+```text
+1.See page source and js, it uses websocket messages
+
+2.In burp check websocket, it send a message to server like this:
+{"level":"/udsWoshd","data":{"next":false}}
+
+3.Send this message to server :
+{"level":"/udsWoshd","data":{"next":true}}
+
+4.It gives you the flag: "/rNNVU329"
+
+5.Go to : https://talent.voorivex.academy/rNNVU329
+```
 
 
 
