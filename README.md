@@ -100,7 +100,30 @@ like this : 00110011 00111000 00101110 00111000 00111000 00110011 00110000 00110
 7.Go to : https://talent.voorivex.academy/jKD7AlXH
 ```
 
+- ### Level 8
 
+```text
+1.You have two cookies this time
+- role
+- secure_role
+
+2.The `role` cookie works as previous level, but `secure_role` is combination of
+user.LONGHASH, there is also a javascript in the page which shows how this hash is generated
+
+3.We need the `secretKey` in order to make a hash for user admin
+
+4.Sending any arbitary data in `secure_role` cookie, generates an error that shows the secret key : `int3rstellarKey`
+
+5.Use this key and call the function `signString` in browser console like this : signString('admin','int3rstellarKey')
+it gives you the hash for user admin -> ab5479d103913c42eeb210220e74677bb48f53fbb7c7dae4ad62335bd51e85cc
+
+6.send the request this time like this :
+- `role` cookie should be : `YWRtaW4F` (same as previous level)
+- `secure_role` cookie should be : `YWRtaW4=.ab5479d103913c42eeb210220e74677bb48f53fbb7c7dae4ad62335bd51e85cc`
+you will get the flag : `"/dUwsDlDr"`
+
+7.Go to : https://talent.voorivex.academy/dUwsDlDr
+```
 
 
 
