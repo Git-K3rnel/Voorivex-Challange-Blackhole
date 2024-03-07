@@ -125,6 +125,100 @@ you will get the flag : `"/dUwsDlDr"`
 7.Go to : https://talent.voorivex.academy/dUwsDlDr
 ```
 
+- ### Level 9
+
+```text
+1.See the page source, it says send `?showme` as parameter, do it and you will get a php code:
+```
+
+```php
+<?php
+error_reporting(0);
+require 'salt.php';
+
+if (array_key_exists('showme', $_GET)) {
+    show_source('index.php');
+    die();
+}
+
+function generateHashWithSalt($password, $salt)
+{
+    $combined = $password . '<>' . $salt;
+    $hashedPassword = md5($combined);
+
+    return $hashedPassword;
+}
+
+if (isset($_GET['password'])) {
+    // https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10k-most-common.txt
+    if (generateHashWithSalt($_GET['password'], $salt) === '947f7730925f722c020c241d10fd930e') {
+        echo getenv('LEVEL_10');
+        die();
+    } else {
+        echo 'Invalid password!';
+        die();
+    }
+}
+?>
+```
+
+```text
+2.You should find the correct salt and password to reach to the hash
+- for password list download the `10k-most-common.txt` from the given link in comment
+- for salt, look at the page sentence : `challenges is the salt . . .`, so the salt is the word `challenges`
+
+3.Write a python code to calculate the hash for you :
+```
+
+```python
+import hashlib
+
+
+with open('wordlist.txt','r') as f:
+    password_lines = f.readlines()
+
+
+def generate_md5_hash(password, salt):
+    md5_hash = hashlib.md5()
+    combined = f'{password}<>{salt}'
+    md5_hash.update(combined.encode('utf-8'))
+    hashedPassword =md5_hash.hexdigest()
+    return hashedPassword
+
+for password in password_lines:
+    striped_password = password.strip()
+    result = generate_md5_hash(striped_password,'challenges')
+    if result.strip() == '947f7730925f722c020c241d10fd930e':
+        print(f'found password : {striped_password}')
+        break
+```
+
+```text
+the password is `space`
+
+4.Send the password as parameter to get the flag: https://talent.voorivex.academy/dUwsDlDr/?password=space
+you wil get : "/rqp2yOxi"
+5.Go to : https://talent.voorivex.academy/rqp2yOxi/
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
