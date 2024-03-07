@@ -280,8 +280,40 @@ in Authorization header like this : `Authorization: bearer YOUR_TOKEN_HERE`
 7.Go to : https://talent.voorivex.academy/hrBlNawD/
 ```
 
+- ### Level13
 
+```text
+1.This level uses websocket too, but the system already chooses a number
+and wants you to guess it
 
+2.In order to find the right number, first we should detect the least and most acceptable
+number that system accepts, it is from 1000-9999, check it by system response
+
+3.Since we do not know the number we should generate all the numbers available in this range
+
+4.I wrote a simple python code to generate the numbers:
+```
+
+```python
+total_codes = ''
+for i in range(1000,10000,1):
+    total_codes += f'"{i}",'
+
+final_codes = total_codes[:-1]
+
+with open('file.txt','a') as f:
+    f.write(final_codes)
+```
+
+```text
+open the file.txt and copy all the values and put it in data parameter as an array like this:
+
+{"level":"/hrBlNawD","data":{"code":["1000","1001","1002",...,"9999"]}}
+
+and send it, it will give you : /2X8oLemQ
+
+5.Go to : https://talent.voorivex.academy/2X8oLemQ
+```
 
 
 
